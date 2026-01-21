@@ -13,7 +13,7 @@ let streak = 0;
 
 let timeLeft = 0;
 let timerInterval = null;
-let dailyMode = false;
+let dailyMode = false;   // 🔥 important flag
 
 // ================= SOUNDS =================
 const correctSound = new Audio("/static/sounds/correct.mp3");
@@ -110,10 +110,10 @@ function showLevelMap() {
   document.getElementById("level-map").classList.remove("hidden");
 }
 
-// ================= GAME START =================
+// ================= PRACTICE GAME =================
 
 function startGame(lvl = unlockedLevel) {
-  dailyMode = false;
+  dailyMode = false;   // 🔥 practice mode
   level = lvl;
 
   fetch(`/api/start?level=${level}`)
@@ -133,10 +133,40 @@ function startGame(lvl = unlockedLevel) {
     });
 }
 
+// ================= DAILY QUIZ MODE (🔥 FIXED) =================
+
+function startDailyQuiz() {
+  dailyMode = true;   // 🔥 daily quiz mode
+
+  console.log("🔥 Daily Quiz clicked");
+
+  fetch("/api/daily")
+    .then(res => res.json())
+    .then(data => {
+      console.log("🔥 Daily quiz data loaded");
+
+      questions = data.questions.map(q => q.question);
+      answers = data.answers;
+
+      currentIndex = 0;
+      score = 0;
+      streak = 0;
+
+      hideAll();
+      document.getElementById("game-screen").classList.remove("hidden");
+
+      showQuestion();
+    })
+    .catch(err => {
+      console.error("❌ Daily Quiz Error", err);
+      alert("Daily Quiz not available right now");
+    });
+}
+
 // ================= QUESTION FLOW =================
 
 function showQuestion() {
-  document.getElementById("level").innerText = `Level ${level}`;
+  document.getElementById("level").innerText = dailyMode ? "Daily Quiz" : `Level ${level}`;
   document.getElementById("score").innerText = `Score: ${score}`;
   document.getElementById("streak").innerText =
     streak > 1 ? `🔥 Streak x${streak}` : "";
@@ -153,7 +183,7 @@ function showQuestion() {
 function startTimer() {
   clearInterval(timerInterval);
 
-  const maxTime = getTimeForLevel(level);
+  const maxTime = dailyMode ? 15 : getTimeForLevel(level);
   timeLeft = maxTime;
 
   updateCircle(maxTime);
@@ -186,19 +216,18 @@ function checkAnswer() {
 
   if (userAnswer === correctAnswer) {
 
-    // 🔊 ALWAYS PLAY CORRECT SOUND (NO LAG)
     correctSound.currentTime = 0;
     correctSound.play();
 
     streak++;
 
-    const base = getPointsPerQuestion(level);
+    const base = dailyMode ? 10 : getPointsPerQuestion(level);
     score += base + timeLeft + streak * 2;
 
     currentIndex++;
 
     if (currentIndex >= questions.length) {
-      levelComplete();
+      dailyMode ? dailyComplete() : levelComplete();
     } else {
       showQuestion();
     }
@@ -210,11 +239,9 @@ function checkAnswer() {
 function levelComplete() {
   clearInterval(timerInterval);
 
-  // 🎉 LEVEL PASS SOUND
   levelSound.currentTime = 0;
   levelSound.play();
 
-  // 🎊 SHOW CONGRATS ANIMATION (NON-BLOCKING)
   showCongrats();
 
   totalPoints += score;
@@ -239,6 +266,15 @@ function levelComplete() {
     level++;
     startGame(level);
   }, 1400);
+}
+
+// ================= DAILY COMPLETE =================
+
+function dailyComplete() {
+  clearInterval(timerInterval);
+
+  alert(`🎯 Daily Quiz Complete!\nScore: ${score}`);
+  showDashboard();
 }
 
 // ================= CONGRATS ANIMATION =================
