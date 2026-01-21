@@ -1,71 +1,80 @@
-import json
-import os
+import json, os, datetime, random
 from flask import Blueprint, request, jsonify
 from game.question_generator import generate_question
 
 api = Blueprint("api", __name__)
 
 DATA_FILE = "data/leaderboard.json"
+DAILY_FILE = "data/daily.json"
 
-
-def load_leaderboard():
-    # If file does not exist → return empty list
-    if not os.path.exists(DATA_FILE):
+def load(file):
+    if not os.path.exists(file):
         return []
-
-    # If file exists but empty or corrupted → reset
     try:
-        with open(DATA_FILE, "r") as f:
-            content = f.read().strip()
-            if not content:
-                return []
-            return json.loads(content)
-    except Exception as e:
-        print("⚠ Leaderboard file corrupted, resetting:", e)
+        with open(file, "r") as f:
+            return json.load(f)
+    except:
         return []
 
-
-def save_leaderboard(data):
-    os.makedirs(os.path.dirname(DATA_FILE), exist_ok=True)
-
-    with open(DATA_FILE, "w") as f:
+def save(file, data):
+    os.makedirs(os.path.dirname(file), exist_ok=True)
+    with open(file, "w") as f:
         json.dump(data, f, indent=2)
 
-
 @api.route("/start")
-def start_game():
+def start():
     level = int(request.args.get("level", 1))
-    questions = [generate_question(level) for _ in range(20)]
-
-    safe = [{"question": q["question"]} for q in questions]
-
+    qs = [generate_question(level) for _ in range(20)]
     return jsonify({
-        "questions": safe,
-        "answers": [q["answer"] for q in questions]
+        "questions": [{"question": q["question"]} for q in qs],
+        "answers": [q["answer"] for q in qs]
     })
-
 
 @api.route("/save_score", methods=["POST"])
 def save_score():
     data = request.json
-    leaderboard = load_leaderboard()
+    board = load(DATA_FILE)
 
-    # Remove old entry of same user
-    leaderboard = [u for u in leaderboard if u.get("username") != data.get("username")]
+    board = [u for u in board if u["username"] != data["username"]]
+    board.append(data)
 
-    leaderboard.append(data)
+    board = sorted(board, key=lambda x: x["totalScore"], reverse=True)[:50]
+    save(DATA_FILE, board)
 
-    leaderboard = sorted(
-        leaderboard,
-        key=lambda x: x.get("totalScore", 0),
-        reverse=True
-    )[:50]
-
-    save_leaderboard(leaderboard)
-    return jsonify({"status": "ok"})
-
-
+    return jsonify({"ok": True})
 
 @api.route("/leaderboard")
 def leaderboard():
-    return jsonify(load_leaderboard())
+    return jsonify(load(DATA_FILE))
+
+# DAILY QUIZ
+
+@api.route("/daily")
+def daily():
+    today = str(datetime.date.today())
+    data = load(DAILY_FILE)
+
+    if not data or data[0]["date"] != today:
+        qs = [generate_question(random.randint(5,15)) for _ in range(10)]
+        data = [{
+            "date": today,
+            "questions": qs,
+            "scores": []
+        }]
+        save(DAILY_FILE, data)
+
+    qs = data[0]["questions"]
+    return jsonify({
+        "questions": [{"question": q["question"]} for q in qs],
+        "answers": [q["answer"] for q in qs]
+    })
+
+@api.route("/save_daily", methods=["POST"])
+def save_daily():
+    payload = request.json
+    data = load(DAILY_FILE)
+
+    data[0]["scores"].append(payload)
+    save(DAILY_FILE, data)
+
+    return jsonify({"ok": True})

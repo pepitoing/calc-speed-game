@@ -1,7 +1,9 @@
+// ================= USER DATA =================
 let username = localStorage.getItem("username");
 let unlockedLevel = parseInt(localStorage.getItem("unlockedLevel") || "1");
 let totalPoints = parseInt(localStorage.getItem("totalPoints") || "0");
 
+// ================= GAME STATE =================
 let level = unlockedLevel;
 let questions = [];
 let answers = [];
@@ -9,31 +11,29 @@ let currentIndex = 0;
 let score = 0;
 let streak = 0;
 
-let timeLeft = 15;
+let timeLeft = 0;
 let timerInterval = null;
+let dailyMode = false;
 
+// ================= SOUNDS =================
 const correctSound = new Audio("/static/sounds/correct.mp3");
-const wrongSound = new Audio("/static/sounds/wrong.mp3");
+const wrongSound   = new Audio("/static/sounds/wrong.mp3");
+const levelSound   = new Audio("/static/sounds/level_pass.mp3");
+
+correctSound.volume = 0.6;
+wrongSound.volume = 0.7;
+levelSound.volume = 0.8;
 
 window.onload = () => {
-  if (username) {
-    showDashboard();
-  }
+  if (username) showDashboard();
 };
 
-/* ----------------------------
-   UTILITIES
----------------------------- */
+// ================= UTILITIES =================
 
 function hideAll() {
-  [
-    "username-screen",
-    "dashboard",
-    "level-map",
-    "game-screen",
-    "game-over-screen",
-    "leaderboard-screen"
-  ].forEach(id => {
+  ["username-screen","dashboard","level-map","game-screen",
+   "game-over-screen","leaderboard-screen"]
+  .forEach(id => {
     const el = document.getElementById(id);
     if (el) el.classList.add("hidden");
   });
@@ -42,27 +42,35 @@ function hideAll() {
 function getPointsPerQuestion(level) {
   if (level <= 2) return 10;
   if (level <= 5) return 15;
-  if (level <= 9) return 20;
+  if (level <= 10) return 20;
   return 25;
 }
 
-/* ----------------------------
-   USERNAME + DASHBOARD
----------------------------- */
+function getTimeForLevel(level) {
+  if (level <= 2) return 12;
+  if (level <= 5) return 14;
+  if (level <= 10) return 16;
+  if (level <= 20) return 18;
+  if (level <= 30) return 20;
+  return 22;
+}
+
+// ================= DASHBOARD =================
 
 function saveUsername() {
   const input = document.getElementById("username-input").value.trim();
-  if (!input) return alert("Enter your name");
+  if (!input) return;
 
   username = input;
   localStorage.setItem("username", username);
 
-  // New user reset
-  localStorage.setItem("unlockedLevel", "1");
-  localStorage.setItem("totalPoints", "0");
+  if (!localStorage.getItem("unlockedLevel")) {
+    localStorage.setItem("unlockedLevel", "1");
+    localStorage.setItem("totalPoints", "0");
+  }
 
-  unlockedLevel = 1;
-  totalPoints = 0;
+  unlockedLevel = parseInt(localStorage.getItem("unlockedLevel"));
+  totalPoints = parseInt(localStorage.getItem("totalPoints"));
 
   showDashboard();
 }
@@ -70,34 +78,29 @@ function saveUsername() {
 function showDashboard() {
   hideAll();
   document.getElementById("dashboard").classList.remove("hidden");
-
-  document.getElementById("welcome-text").innerText =
-    `Welcome, ${username}`;
-
+  document.getElementById("welcome-text").innerText = `Welcome, ${username}`;
   document.getElementById("total-points").innerText = totalPoints;
 }
 
-/* ----------------------------
-   LEVEL MAP
----------------------------- */
+// ================= LEVEL MAP =================
 
 function showLevelMap() {
   hideAll();
   const container = document.getElementById("levels-container");
   container.innerHTML = "";
 
-  const maxVisible = 10;
+  const maxVisible = unlockedLevel + 5;
 
   for (let i = 1; i <= maxVisible; i++) {
     const btn = document.createElement("button");
 
     if (i <= unlockedLevel) {
       btn.innerText = i;
-      btn.className = "bg-green-500 p-3 rounded text-black";
+      btn.className = "bg-green-500 p-3 rounded text-black hover:scale-105 transition";
       btn.onclick = () => startGame(i);
     } else {
       btn.innerText = "🔒";
-      btn.className = "bg-slate-600 p-3 rounded opacity-60 text-white";
+      btn.className = "bg-slate-600 p-3 rounded opacity-60";
       btn.disabled = true;
     }
 
@@ -107,17 +110,16 @@ function showLevelMap() {
   document.getElementById("level-map").classList.remove("hidden");
 }
 
-/* ----------------------------
-   GAME START
----------------------------- */
+// ================= GAME START =================
 
 function startGame(lvl = unlockedLevel) {
+  dailyMode = false;
   level = lvl;
 
   fetch(`/api/start?level=${level}`)
     .then(res => res.json())
     .then(data => {
-      questions = data.questions;
+      questions = data.questions.map(q => q.question);
       answers = data.answers;
 
       currentIndex = 0;
@@ -128,26 +130,21 @@ function startGame(lvl = unlockedLevel) {
       document.getElementById("game-screen").classList.remove("hidden");
 
       showQuestion();
-    })
-    .catch(err => {
-      alert("Server error. Try again.");
-      console.error(err);
     });
 }
 
-/* ----------------------------
-   QUESTION FLOW
----------------------------- */
+// ================= QUESTION FLOW =================
 
 function showQuestion() {
   document.getElementById("level").innerText = `Level ${level}`;
   document.getElementById("score").innerText = `Score: ${score}`;
-  document.getElementById("progress").innerText =
-    `${currentIndex + 1} / ${questions.length}`;
+  document.getElementById("streak").innerText =
+    streak > 1 ? `🔥 Streak x${streak}` : "";
 
-  document.getElementById("question").innerText =
-    questions[currentIndex].question;
+  const percent = ((currentIndex + 1) / questions.length) * 100;
+  document.getElementById("progress-bar").style.width = percent + "%";
 
+  document.getElementById("question").innerText = questions[currentIndex];
   document.getElementById("answer").value = "";
 
   startTimer();
@@ -155,12 +152,15 @@ function showQuestion() {
 
 function startTimer() {
   clearInterval(timerInterval);
-  timeLeft = 15;
-  updateCircle();
+
+  const maxTime = getTimeForLevel(level);
+  timeLeft = maxTime;
+
+  updateCircle(maxTime);
 
   timerInterval = setInterval(() => {
     timeLeft--;
-    updateCircle();
+    updateCircle(maxTime);
 
     if (timeLeft <= 0) {
       gameOver("⏱ Time up!");
@@ -168,30 +168,32 @@ function startTimer() {
   }, 1000);
 }
 
-function updateCircle() {
+function updateCircle(maxTime) {
   const circle = document.getElementById("timer-circle");
   const circumference = 176;
-  const offset = circumference - (timeLeft / 15) * circumference;
+  const offset = circumference - (timeLeft / maxTime) * circumference;
   circle.style.strokeDashoffset = offset;
 }
 
+// ================= ANSWER CHECK =================
+
 function checkAnswer() {
   const input = document.getElementById("answer").value;
-  if (input === "") return;
+  if (!input) return;
 
   const userAnswer = parseInt(input);
   const correctAnswer = answers[currentIndex];
 
   if (userAnswer === correctAnswer) {
+
+    // 🔊 ALWAYS PLAY CORRECT SOUND (NO LAG)
+    correctSound.currentTime = 0;
     correctSound.play();
 
     streak++;
 
-    const basePoints = getPointsPerQuestion(level);
-    const speedBonus = timeLeft;
-    const streakBonus = streak * 2;
-
-    score += basePoints + speedBonus + streakBonus;
+    const base = getPointsPerQuestion(level);
+    score += base + timeLeft + streak * 2;
 
     currentIndex++;
 
@@ -203,24 +205,26 @@ function checkAnswer() {
   }
 }
 
-/* ----------------------------
-   LEVEL COMPLETE
----------------------------- */
+// ================= LEVEL COMPLETE =================
 
 function levelComplete() {
   clearInterval(timerInterval);
 
-  // Add to total points
+  // 🎉 LEVEL PASS SOUND
+  levelSound.currentTime = 0;
+  levelSound.play();
+
+  // 🎊 SHOW CONGRATS ANIMATION (NON-BLOCKING)
+  showCongrats();
+
   totalPoints += score;
   localStorage.setItem("totalPoints", totalPoints);
 
-  // Unlock next level (max 10)
-  if (level === unlockedLevel && unlockedLevel < 10) {
+  if (level === unlockedLevel) {
     unlockedLevel++;
     localStorage.setItem("unlockedLevel", unlockedLevel);
   }
 
-  // Save leaderboard
   fetch("/api/save_score", {
     method: "POST",
     headers: {"Content-Type": "application/json"},
@@ -231,42 +235,57 @@ function levelComplete() {
     })
   });
 
-  // Flash message
-  document.getElementById("question").innerText = "🎉 Level Complete!";
-
   setTimeout(() => {
-    // AUTO START NEXT LEVEL
-    if (level < unlockedLevel) {
-      level++;
-      startGame(level);
-    } else {
-      showDashboard();
-    }
-  }, 1200);
+    level++;
+    startGame(level);
+  }, 1400);
 }
 
-/* ----------------------------
-   GAME OVER
----------------------------- */
+// ================= CONGRATS ANIMATION =================
+
+function showCongrats() {
+  const box = document.createElement("div");
+  box.innerHTML = `
+    <div style="
+      position:fixed; inset:0; display:flex; align-items:center; justify-content:center;
+      background:rgba(0,0,0,0.3); z-index:50;">
+      <div style="
+        background:white; color:black; padding:30px 50px; border-radius:20px;
+        font-size:28px; font-weight:bold; animation: pop 0.6s ease;">
+        🎉 Level Passed!
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(box);
+
+  setTimeout(() => {
+    box.remove();
+  }, 900);
+}
+
+// ================= GAME OVER =================
 
 function gameOver(reason) {
   clearInterval(timerInterval);
+  wrongSound.currentTime = 0;
   wrongSound.play();
-  streak = 0;
 
   hideAll();
   document.getElementById("game-over-screen").classList.remove("hidden");
 
   document.getElementById("final-score").innerText =
-    `${reason}
-Correct Answer: ${answers[currentIndex]}
-Level Score: ${score}
-Total Points: ${totalPoints}`;
+    `${reason}\nCorrect Answer: ${answers[currentIndex]}\nScore: ${score}`;
 }
 
-/* ----------------------------
-   LEADERBOARD
----------------------------- */
+// ================= QUIT GAME =================
+
+function quitGame() {
+  clearInterval(timerInterval);
+  showDashboard();
+}
+
+// ================= LEADERBOARD =================
 
 function showLeaderboard() {
   hideAll();
@@ -287,10 +306,7 @@ function showLeaderboard() {
     });
 }
 
-
-/* ----------------------------
-   NAVIGATION
----------------------------- */
+// ================= NAVIGATION =================
 
 function goDashboard() {
   hideAll();
