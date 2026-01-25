@@ -1,153 +1,138 @@
+# api/routes.py
 from flask import Blueprint, jsonify, request
-import random
+from datetime import date
 import json
 import os
-from datetime import date
+
+# 🔥 NEW ARCHITECTURE IMPORT
+from game.levels import generate_questions
 
 api = Blueprint("api", __name__)
 
-LEADERBOARD_FILE = "leaderboard.json"
-DAILY_FILE = "daily_quiz.json"
+# ===============================
+# PATH SETUP
+# ===============================
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+DATA_DIR = os.path.join(BASE_DIR, "data")
+
+LEADERBOARD_FILE = os.path.join(DATA_DIR, "leaderboard.json")
+DAILY_FILE = os.path.join(DATA_DIR, "daily.json")
 
 
-# ================= LEADERBOARD HELPERS =================
-
-def load_leaderboard():
-    if not os.path.exists(LEADERBOARD_FILE):
-        return []
+# ===============================
+# JSON HELPERS (SAFE)
+# ===============================
+def load_json(path, default):
+    if not os.path.exists(path):
+        return default
     try:
-        with open(LEADERBOARD_FILE, "r") as f:
-            return json.load(f)
+        with open(path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+            return data if isinstance(data, dict) else default
     except:
-        return []
+        return default
 
 
-def save_leaderboard(data):
-    with open(LEADERBOARD_FILE, "w") as f:
+def save_json(path, data):
+    with open(path, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=2)
 
 
-# ================= QUESTION GENERATOR =================
-
-def generate_question(level):
-    if level <= 3:
-        a = random.randint(5, 99)
-        b = random.randint(5, 99)
-        op = random.choice(["+", "-"])
-    elif level <= 7:
-        a = random.randint(10, 99)
-        b = random.randint(10, 99)
-        op = random.choice(["+", "-", "*"])
-    else:
-        a = random.randint(10, 99)
-        b = random.randint(2, 20)
-        op = random.choice(["+", "-", "*"])
-
-    question = f"{a} {op} {b}"
-    answer = eval(question)
-
-    return {"question": question}, answer
-
-
-# ================= NORMAL LEVEL MODE =================
-
+# ===============================
+# PRACTICE MODE
+# ===============================
 @api.route("/api/start")
-def start_level():
+def start_practice():
     level = int(request.args.get("level", 1))
+    qtype = request.args.get("type", "mixed")
 
-    questions = []
-    answers = []
-
-    for _ in range(20):
-        q, a = generate_question(level)
-        questions.append(q)
-        answers.append(a)
-
-    return jsonify({
-        "questions": questions,
-        "answers": answers
-    })
+    payload = generate_questions(
+        level=level,
+        qtype=qtype,
+        mode="practice"
+    )
+    return jsonify(payload)
 
 
-# ================= DAILY QUIZ MODE =================
-
+# ===============================
+# DAILY QUIZ (FIXED & ISOLATED)
+# ===============================
 @api.route("/api/daily")
 def daily_quiz():
     today = str(date.today())
+    data = load_json(DAILY_FILE, {})
 
-    # If today's quiz already generated → reuse
-    if os.path.exists(DAILY_FILE):
-        try:
-            with open(DAILY_FILE, "r") as f:
-                data = json.load(f)
-                if data.get("date") == today:
-                    return jsonify({
-                        "questions": data["questions"],
-                        "answers": data["answers"]
-                    })
-        except:
-            pass
+    # If today's quiz already exists → reuse
+    if data.get("date") == today:
+        return jsonify(data)
 
-    # Generate new daily quiz (10 questions, mixed medium level)
-    questions = []
-    answers = []
+    # Generate new daily quiz
+    payload = generate_questions(
+        level=7,          # moderate fixed difficulty
+        qtype="mixed",
+        mode="daily"
+    )
+    payload["date"] = today
 
-    for _ in range(10):
-        q, a = generate_question(5)  # medium difficulty
-        questions.append(q)
-        answers.append(a)
-
-    data = {
-        "date": today,
-        "questions": questions,
-        "answers": answers
-    }
-
-    with open(DAILY_FILE, "w") as f:
-        json.dump(data, f, indent=2)
-
-    return jsonify({
-        "questions": questions,
-        "answers": answers
-    })
+    save_json(DAILY_FILE, payload)
+    return jsonify(payload)
 
 
-# ================= SAVE SCORE =================
+# ===============================
+# MOCK EXAM (NEW)
+# ===============================
+@api.route("/api/mock")
+def mock_exam():
+    payload = generate_questions(
+        level=12,         # higher difficulty
+        qtype="mixed",
+        mode="mock"
+    )
+    return jsonify(payload)
 
+
+# ===============================
+# SAVE SCORE (LEADERBOARD)
+# ===============================
 @api.route("/api/save_score", methods=["POST"])
 def save_score():
-    data = request.json
-    username = data.get("username")
-    totalScore = data.get("totalScore")
-    level = data.get("level")
+    body = request.json
+    username = body.get("username")
+    totalScore = body.get("totalScore")
+    highestLevel = body.get("level", 1)
 
-    leaderboard = load_leaderboard()
+    leaderboard = load_json(LEADERBOARD_FILE, {"users": []})
+    users = leaderboard.get("users", [])
 
     found = False
-    for user in leaderboard:
-        if user["username"] == username:
-            if totalScore > user["totalScore"]:
-                user["totalScore"] = totalScore
-                user["level"] = level
+    for u in users:
+        if u["username"] == username:
+            # Update ONLY if new score is higher
+            if totalScore > u["totalScore"]:
+                u["totalScore"] = totalScore
+                u["highestLevel"] = max(u.get("highestLevel", 1), highestLevel)
             found = True
             break
 
     if not found:
-        leaderboard.append({
+        users.append({
             "username": username,
             "totalScore": totalScore,
-            "level": level
+            "highestLevel": highestLevel
         })
 
-    leaderboard = sorted(leaderboard, key=lambda x: x["totalScore"], reverse=True)[:50]
+    # Sort & limit
+    users = sorted(users, key=lambda x: x["totalScore"], reverse=True)[:50]
+    leaderboard["users"] = users
 
-    save_leaderboard(leaderboard)
-
+    save_json(LEADERBOARD_FILE, leaderboard)
     return jsonify({"status": "ok"})
 
 
-# ================= LEADERBOARD =================
-
+# ===============================
+# LEADERBOARD FETCH
+# ===============================
 @api.route("/api/leaderboard")
 def leaderboard():
-    return jsonify(load_leaderboard())
+    data = load_json(LEADERBOARD_FILE, {"users": []})
+    return jsonify(data.get("users", []))
